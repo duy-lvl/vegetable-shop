@@ -1,11 +1,12 @@
 # An online vegetable shop
 
-### Feature
+### Features
 - View products
 - Add to cart
 - Check out
 - Log in
 - Manage products
-### Screenshot
+### Screenshots
 
-![]()
+![Check out screen](https://github.com/duy-lvl/vegetable-shop/blob/main/screenshot-checkout.png)
+![Home screen](https://github.com/duy-lvl/vegetable-shop/blob/main/screenshot-home.png)
