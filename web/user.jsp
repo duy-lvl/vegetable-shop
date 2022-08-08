@@ -5,7 +5,7 @@
 --%>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@page import="sample.user.UserDTO"%>
+<%@page import="shop.user.UserDTO"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>

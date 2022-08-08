@@ -4,8 +4,8 @@
     Author     : USER
 --%>
 
-<%@page import="sample.user.UserDTO"%>
-<%@page import="sample.product.ProductDTO"%>
+<%@page import="shop.user.UserDTO"%>
+<%@page import="shop.product.ProductDTO"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page import="java.util.List"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>

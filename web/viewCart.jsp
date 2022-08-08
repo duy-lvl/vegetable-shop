@@ -4,9 +4,9 @@
     Author     : USER
 --%>
 
-<%@page import="sample.user.UserDTO"%>
-<%@page import="sample.product.ProductDTO"%>
-<%@page import="sample.shopping.Cart"%>
+<%@page import="shop.user.UserDTO"%>
+<%@page import="shop.product.ProductDTO"%>
+<%@page import="shop.shopping.Cart"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
