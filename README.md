@@ -1,4 +1,4 @@
-# An online vegetable shop
+# Online vegetable shop
 
 ### Features
 - View products
