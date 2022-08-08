@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.controllers;
+package shop.controllers;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -11,14 +11,17 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import sample.product.ProductDAO;
+import javax.servlet.http.HttpSession;
+import shop.product.ProductDAO;
+import shop.product.ProductDTO;
+import shop.shopping.Cart;
 
 /**
  *
  * @author USER
  */
-@WebServlet(name = "DeleteController", urlPatterns = {"/DeleteController"})
-public class DeleteController extends HttpServlet {
+@WebServlet(name = "EditController", urlPatterns = {"/EditController"})
+public class EditController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -29,26 +32,40 @@ public class DeleteController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    private static final String ERROR = "admin.jsp";
-    private static final String SUCCESS = "admin.jsp";
+    private static final String ERROR = "error.jsp";
+    private static final String SUCCESS = "viewCart.jsp";
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String url = ERROR;
         try {
-            String productID = request.getParameter("productID");
-            ProductDAO dao = new ProductDAO();
-            boolean check = dao.deleteProduct(productID);
-            if (check) {
-                url = SUCCESS;
+            String id = request.getParameter("productID");
+            int newQuantity = Integer.parseInt(request.getParameter("quantity"));
+            HttpSession session = request.getSession();
+            Cart cart = (Cart) session.getAttribute("CART");
+            if (cart != null) {
+                ProductDTO product = new ProductDTO();
+                if (cart.getCart().containsKey(id)) {
+                    product = cart.getCart().get(id);
+                    int maxQuantity = new ProductDAO().getMaxQuantity(product.getProductID());
+                    if (newQuantity <= maxQuantity) {
+                        product.setQuantity(newQuantity);
+                        cart.update(id, product);
+                        session.setAttribute("CART", cart);
+                        
+                    } else {
+                        request.setAttribute("EDIT_MESSAGE", "Update failed! Quantity is not enough!");
+                    }
+                    url = SUCCESS;
+                }
             }
         } catch (Exception e) {
-            log("Error at DeleteController: " + e.toString());
+            log("Error at EditController: " + e.toString());
         } finally {
-            request.setAttribute("roleID", "AD");
             request.getRequestDispatcher(url).forward(request, response);
         }
+
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

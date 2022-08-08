@@ -3,23 +3,26 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.controllers;
+package shop.controllers;
 
 import java.io.IOException;
+import java.sql.Date;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import sample.user.UserDTO;
+import shop.product.ProductDTO;
+import shop.shopping.Cart;
+import shop.user.UserDTO;
 
 /**
  *
  * @author USER
  */
-@WebServlet(name = "ViewController", urlPatterns = {"/ViewController"})
-public class ViewController extends HttpServlet {
+@WebServlet(name = "AddController", urlPatterns = {"/AddController"})
+public class AddController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -30,21 +33,46 @@ public class ViewController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    private final static String ERROR = "shopping.jsp";
-    private final static String SUCCESS = "viewCart.jsp";
+    private static final String ERROR = "shopping.jsp";
+    private static final String SUCCESS = "shopping.jsp";
+    
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String url = ERROR;
-        HttpSession session = request.getSession();
-        UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
-        if (loginUser == null) {
-            request.setAttribute("LOGIN_MESSAGE", "Please login to continue");
+        try {
+            HttpSession session = request.getSession();
+            UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
+            if (loginUser != null) {
+                String productID = request.getParameter("productID");
+                String productName = request.getParameter("productName");
+                String image = request.getParameter("image");
+                double price = Double.parseDouble(request.getParameter("price"));
+                int quantity = Integer.parseInt(request.getParameter("quantity"));
+                String categoryID = request.getParameter("categoryID");
+                Date importDate = Date.valueOf(request.getParameter("importDate"));
+                Date usingDate = Date.valueOf(request.getParameter("usingDate"));
+                
+                ProductDTO product = new ProductDTO(productID, productName, image, price, quantity, categoryID, importDate, usingDate);
+                Cart cart = (Cart) session.getAttribute("CART");
+                
+                if (cart == null) {
+                    cart = new Cart();
+                }
+                
+                cart.add(product);
+                session.setAttribute("CART", cart);
+                request.setAttribute("MESSAGE", "ADDED: " + productName + "-" + quantity + " successfully!");
+                
+                url = SUCCESS;
+            } else {
+                request.setAttribute("LOGIN_MESSAGE", "Please login to continue!");
+            }
+        } catch (Exception e) {
+            log("Error at AddController: " + e.toString());
+        } finally {
+            request.getRequestDispatcher(url).forward(request, response);
         }
-        else {
-            url = SUCCESS;
-        }
-        request.getRequestDispatcher(url).forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.controllers;
+package shop.controllers;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -12,16 +12,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import sample.product.ProductDAO;
-import sample.product.ProductDTO;
-import sample.shopping.Cart;
 
 /**
  *
  * @author USER
  */
-@WebServlet(name = "EditController", urlPatterns = {"/EditController"})
-public class EditController extends HttpServlet {
+@WebServlet(name = "LogoutController", urlPatterns = {"/LogoutController"})
+public class LogoutController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -32,40 +29,24 @@ public class EditController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    private static final String ERROR = "error.jsp";
-    private static final String SUCCESS = "viewCart.jsp";
-
+    
+    private static final String ERROR = "login.jsp";
+    private static final String SUCCESS = "login.jsp";
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String url = ERROR;
         try {
-            String id = request.getParameter("productID");
-            int newQuantity = Integer.parseInt(request.getParameter("quantity"));
-            HttpSession session = request.getSession();
-            Cart cart = (Cart) session.getAttribute("CART");
-            if (cart != null) {
-                ProductDTO product = new ProductDTO();
-                if (cart.getCart().containsKey(id)) {
-                    product = cart.getCart().get(id);
-                    int maxQuantity = new ProductDAO().getMaxQuantity(product.getProductID());
-                    if (newQuantity <= maxQuantity) {
-                        product.setQuantity(newQuantity);
-                        cart.update(id, product);
-                        session.setAttribute("CART", cart);
-                        
-                    } else {
-                        request.setAttribute("EDIT_MESSAGE", "Update failed! Quantity is not enough!");
-                    }
-                    url = SUCCESS;
-                }
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+                url = SUCCESS;
             }
         } catch (Exception e) {
-            log("Error at EditController: " + e.toString());
+            log("Error at LogoutController: " + e.toString());
         } finally {
-            request.getRequestDispatcher(url).forward(request, response);
+            response.sendRedirect(url);
         }
-
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

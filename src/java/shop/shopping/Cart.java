@@ -3,14 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.shopping;
+package shop.shopping;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import sample.product.ProductDTO;
+import shop.product.ProductDTO;
 
 /**
  *

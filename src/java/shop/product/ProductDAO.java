@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.product;
+package shop.product;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.naming.NamingException;
-import static sample.utils.DBUtils.getConnection;
+import static shop.utils.DBUtils.getConnection;
 
 /**
  *

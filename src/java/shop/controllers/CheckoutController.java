@@ -3,24 +3,30 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.controllers;
+package shop.controllers;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import sample.product.ProductDAO;
-import sample.product.ProductDTO;
+import javax.servlet.http.HttpSession;
+import shop.order.OrderDAO;
+import shop.order.OrderDTO;
+import shop.product.ProductDAO;
+import shop.product.ProductDTO;
+import shop.shopping.Cart;
+import shop.user.UserDTO;
 
 /**
  *
  * @author USER
  */
-@WebServlet(name = "UpdateController", urlPatterns = {"/UpdateController"})
-public class UpdateController extends HttpServlet {
+@WebServlet(name = "CheckoutController", urlPatterns = {"/CheckoutController"})
+public class CheckoutController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -31,30 +37,48 @@ public class UpdateController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    private static final String ERROR = "admin.jsp";
-    private static final String SUCCESS = "admin.jsp";
+    private static final String ERROR = "viewCart.jsp";
+    private static final String SUCCESS = "viewCart.jsp";
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+
         String url = ERROR;
+
         try {
-            String productID = request.getParameter("productID");
-            String productName = request.getParameter("productName");
-            String image = request.getParameter("image");
-            double price = Double.parseDouble(request.getParameter("price"));
-            int quantity = Integer.parseInt(request.getParameter("quantity"));
-            String categoryID = request.getParameter("categoryID");
-            Date importDate = Date.valueOf(request.getParameter("importDate"));
-            Date usingDate = Date.valueOf(request.getParameter("usingDate"));
-            ProductDTO product = new ProductDTO(productID, productName, image, price, quantity, categoryID, importDate, usingDate);
+            HttpSession session = request.getSession();
+            Cart cart = (Cart) session.getAttribute("CART");
+            List<ProductDTO> productList = (List<ProductDTO>) cart.getProductList();
+            boolean checkQuantity = true;
             ProductDAO dao = new ProductDAO();
-            boolean check = dao.updateProduct(product);
-            if (check) {
-                url = SUCCESS;
+            for (ProductDTO product : productList) {
+                int maxQuantity = dao.getMaxQuantity(product.getProductID());
+                checkQuantity = checkQuantity && (product.getQuantity() <= maxQuantity);
             }
+            if (checkQuantity) {
+                UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
+                Date orderDate = new Date(System.currentTimeMillis());
+                double total = Double.parseDouble(request.getParameter("total"));
+                byte status = 1;
+                OrderDTO order = new OrderDTO(orderDate, total, loginUser.getUserID(), status);
+                OrderDAO odao = new OrderDAO();
+                boolean checkOrder = odao.insert(order, productList);
+                for (ProductDTO product : productList) {
+                    checkQuantity = checkQuantity && dao.updateProductQuantity(product.getProductID(), dao.getMaxQuantity(product.getProductID()) - product.getQuantity());
+                }
+                if (checkQuantity && checkOrder) {
+                    session.removeAttribute("CART");
+                    url = SUCCESS;
+                    request.setAttribute("MESSAGE", "Checkout successfully!");
+                    return;
+                }
+                
+            }
+            request.setAttribute("MESSAGE", "Checkout failed!");
         } catch (Exception e) {
-            log("Error at UpdateController: " + e.toString());
+            log("Error at CheckoutController: " + e.toString());
+            request.setAttribute("MESSAGE", "Checkout failed!");
         } finally {
             request.getRequestDispatcher(url).forward(request, response);
         }

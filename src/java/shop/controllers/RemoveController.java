@@ -3,23 +3,23 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.controllers;
+package shop.controllers;
 
 import java.io.IOException;
-import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import sample.product.ProductDAO;
+import javax.servlet.http.HttpSession;
+import shop.shopping.Cart;
 
 /**
  *
- * @author DuyLVL
+ * @author USER
  */
-@WebServlet(name = "GetCategoryController", urlPatterns = {"/GetCategoryController"})
-public class GetCategoryController extends HttpServlet {
+@WebServlet(name = "RemoveController", urlPatterns = {"/RemoveController"})
+public class RemoveController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -30,21 +30,31 @@ public class GetCategoryController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    
     private static final String ERROR = "error.jsp";
-    private static final String SUCCESS = "create.jsp";
+    private static final String SUCCESS = "viewCart.jsp";
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String url = ERROR;
         try {
-            Map<String, String> categories = new ProductDAO().getCategory();
-            request.setAttribute("CATEGORIES", categories);
-            url = SUCCESS;
+            String id = request.getParameter("productID");
+            HttpSession session = request.getSession();
+            Cart cart = (Cart) session.getAttribute("CART");
+            if (cart != null) {
+                cart.remove(id);
+                if (cart.getCart().isEmpty()) {
+                    cart = null;
+                }
+                session.setAttribute("CART", cart);
+                url = SUCCESS;
+            }
         } catch (Exception e) {
-            log("Error at GetCategoryController: " + e.toString());
+            log("Error at RemoveController: " + e.toString());
         } finally {
             request.getRequestDispatcher(url).forward(request, response);
         }
+        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

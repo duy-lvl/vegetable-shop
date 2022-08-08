@@ -3,15 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.order;
+package shop.order;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import sample.product.ProductDTO;
-import sample.utils.DBUtils;
+import shop.product.ProductDTO;
+import shop.utils.DBUtils;
 
 /**
  *

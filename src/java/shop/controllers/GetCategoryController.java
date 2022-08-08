@@ -3,30 +3,23 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.controllers;
+package shop.controllers;
 
 import java.io.IOException;
-import java.sql.Date;
-import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import sample.order.OrderDAO;
-import sample.order.OrderDTO;
-import sample.product.ProductDAO;
-import sample.product.ProductDTO;
-import sample.shopping.Cart;
-import sample.user.UserDTO;
+import shop.product.ProductDAO;
 
 /**
  *
- * @author USER
+ * @author DuyLVL
  */
-@WebServlet(name = "CheckoutController", urlPatterns = {"/CheckoutController"})
-public class CheckoutController extends HttpServlet {
+@WebServlet(name = "GetCategoryController", urlPatterns = {"/GetCategoryController"})
+public class GetCategoryController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -37,48 +30,18 @@ public class CheckoutController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    private static final String ERROR = "viewCart.jsp";
-    private static final String SUCCESS = "viewCart.jsp";
-
+    private static final String ERROR = "error.jsp";
+    private static final String SUCCESS = "create.jsp";
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-
         String url = ERROR;
-
         try {
-            HttpSession session = request.getSession();
-            Cart cart = (Cart) session.getAttribute("CART");
-            List<ProductDTO> productList = (List<ProductDTO>) cart.getProductList();
-            boolean checkQuantity = true;
-            ProductDAO dao = new ProductDAO();
-            for (ProductDTO product : productList) {
-                int maxQuantity = dao.getMaxQuantity(product.getProductID());
-                checkQuantity = checkQuantity && (product.getQuantity() <= maxQuantity);
-            }
-            if (checkQuantity) {
-                UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
-                Date orderDate = new Date(System.currentTimeMillis());
-                double total = Double.parseDouble(request.getParameter("total"));
-                byte status = 1;
-                OrderDTO order = new OrderDTO(orderDate, total, loginUser.getUserID(), status);
-                OrderDAO odao = new OrderDAO();
-                boolean checkOrder = odao.insert(order, productList);
-                for (ProductDTO product : productList) {
-                    checkQuantity = checkQuantity && dao.updateProductQuantity(product.getProductID(), dao.getMaxQuantity(product.getProductID()) - product.getQuantity());
-                }
-                if (checkQuantity && checkOrder) {
-                    session.removeAttribute("CART");
-                    url = SUCCESS;
-                    request.setAttribute("MESSAGE", "Checkout successfully!");
-                    return;
-                }
-                
-            }
-            request.setAttribute("MESSAGE", "Checkout failed!");
+            Map<String, String> categories = new ProductDAO().getCategory();
+            request.setAttribute("CATEGORIES", categories);
+            url = SUCCESS;
         } catch (Exception e) {
-            log("Error at CheckoutController: " + e.toString());
-            request.setAttribute("MESSAGE", "Checkout failed!");
+            log("Error at GetCategoryController: " + e.toString());
         } finally {
             request.getRequestDispatcher(url).forward(request, response);
         }

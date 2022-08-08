@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.controllers;
+package shop.controllers;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -12,14 +12,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import sample.shopping.Cart;
+import shop.product.ProductDAO;
+import shop.user.UserDAO;
+import shop.user.UserDTO;
 
 /**
  *
  * @author USER
  */
-@WebServlet(name = "RemoveController", urlPatterns = {"/RemoveController"})
-public class RemoveController extends HttpServlet {
+@WebServlet(name = "LoginController", urlPatterns = {"/LoginController"})
+public class LoginController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -30,31 +32,47 @@ public class RemoveController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    
-    private static final String ERROR = "error.jsp";
-    private static final String SUCCESS = "viewCart.jsp";
+    private static final String ERROR = "login.jsp";
+    private static final String AD = "AD";
+    private static final String ADMIN_PAGE = "admin.jsp";
+    private static final String US = "US";
+    private static final String USER_PAGE = "shopping.jsp";
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String url = ERROR;
         try {
-            String id = request.getParameter("productID");
-            HttpSession session = request.getSession();
-            Cart cart = (Cart) session.getAttribute("CART");
-            if (cart != null) {
-                cart.remove(id);
-                if (cart.getCart().isEmpty()) {
-                    cart = null;
+            String userID = request.getParameter("userID");
+            String password = request.getParameter("password");
+            UserDAO userDAO = new UserDAO();
+            UserDTO loginUser = userDAO.checkLogin(userID, password);
+
+            if (loginUser != null) {
+                HttpSession session = request.getSession();
+                session.setAttribute("LOGIN_USER", loginUser);
+                String roleID = loginUser.getRoleID();
+                
+                ProductDAO productDAO = new ProductDAO();
+                if (AD.equals(roleID)) {
+                    url = ADMIN_PAGE;                    
+                    request.setAttribute("PRODUCT_LIST", productDAO.getProductList("", "AD"));                    
+                } else if (US.equals(roleID)) {
+                    url = USER_PAGE;
+                    request.setAttribute("PRODUCT_LIST", productDAO.getProductList("", "US")); 
+                } else {
+                    request.setAttribute("ERROR", "Your role is not supported!");
                 }
-                session.setAttribute("CART", cart);
-                url = SUCCESS;
+            } else {
+                if (userID != null && password != null) {
+                    request.setAttribute("ERROR", "Incorrect userID or password!");
+                }
             }
         } catch (Exception e) {
-            log("Error at RemoveController: " + e.toString());
+            log("Error at LoginController: " + e.toString());
         } finally {
             request.getRequestDispatcher(url).forward(request, response);
         }
-        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.controllers;
+package shop.controllers;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -12,17 +12,15 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import sample.product.ProductDTO;
-import sample.shopping.Cart;
-import sample.user.UserDTO;
+import shop.product.ProductDAO;
+import shop.product.ProductDTO;
 
 /**
  *
  * @author USER
  */
-@WebServlet(name = "AddController", urlPatterns = {"/AddController"})
-public class AddController extends HttpServlet {
+@WebServlet(name = "UpdateController", urlPatterns = {"/UpdateController"})
+public class UpdateController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -33,43 +31,30 @@ public class AddController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    private static final String ERROR = "shopping.jsp";
-    private static final String SUCCESS = "shopping.jsp";
-    
+    private static final String ERROR = "admin.jsp";
+    private static final String SUCCESS = "admin.jsp";
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String url = ERROR;
         try {
-            HttpSession session = request.getSession();
-            UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
-            if (loginUser != null) {
-                String productID = request.getParameter("productID");
-                String productName = request.getParameter("productName");
-                String image = request.getParameter("image");
-                double price = Double.parseDouble(request.getParameter("price"));
-                int quantity = Integer.parseInt(request.getParameter("quantity"));
-                String categoryID = request.getParameter("categoryID");
-                Date importDate = Date.valueOf(request.getParameter("importDate"));
-                Date usingDate = Date.valueOf(request.getParameter("usingDate"));
-                
-                ProductDTO product = new ProductDTO(productID, productName, image, price, quantity, categoryID, importDate, usingDate);
-                Cart cart = (Cart) session.getAttribute("CART");
-                
-                if (cart == null) {
-                    cart = new Cart();
-                }
-                
-                cart.add(product);
-                session.setAttribute("CART", cart);
-                request.setAttribute("MESSAGE", "ADDED: " + productName + "-" + quantity + " successfully!");
-                
+            String productID = request.getParameter("productID");
+            String productName = request.getParameter("productName");
+            String image = request.getParameter("image");
+            double price = Double.parseDouble(request.getParameter("price"));
+            int quantity = Integer.parseInt(request.getParameter("quantity"));
+            String categoryID = request.getParameter("categoryID");
+            Date importDate = Date.valueOf(request.getParameter("importDate"));
+            Date usingDate = Date.valueOf(request.getParameter("usingDate"));
+            ProductDTO product = new ProductDTO(productID, productName, image, price, quantity, categoryID, importDate, usingDate);
+            ProductDAO dao = new ProductDAO();
+            boolean check = dao.updateProduct(product);
+            if (check) {
                 url = SUCCESS;
-            } else {
-                request.setAttribute("LOGIN_MESSAGE", "Please login to continue!");
             }
         } catch (Exception e) {
-            log("Error at AddController: " + e.toString());
+            log("Error at UpdateController: " + e.toString());
         } finally {
             request.getRequestDispatcher(url).forward(request, response);
         }

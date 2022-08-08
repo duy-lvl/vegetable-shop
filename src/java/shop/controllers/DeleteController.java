@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sample.controllers;
+package shop.controllers;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -11,14 +11,14 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import shop.product.ProductDAO;
 
 /**
  *
  * @author USER
  */
-@WebServlet(name = "LogoutController", urlPatterns = {"/LogoutController"})
-public class LogoutController extends HttpServlet {
+@WebServlet(name = "DeleteController", urlPatterns = {"/DeleteController"})
+public class DeleteController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -29,23 +29,25 @@ public class LogoutController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    
-    private static final String ERROR = "login.jsp";
-    private static final String SUCCESS = "login.jsp";
+    private static final String ERROR = "admin.jsp";
+    private static final String SUCCESS = "admin.jsp";
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String url = ERROR;
         try {
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.invalidate();
+            String productID = request.getParameter("productID");
+            ProductDAO dao = new ProductDAO();
+            boolean check = dao.deleteProduct(productID);
+            if (check) {
                 url = SUCCESS;
             }
         } catch (Exception e) {
-            log("Error at LogoutController: " + e.toString());
+            log("Error at DeleteController: " + e.toString());
         } finally {
-            response.sendRedirect(url);
+            request.setAttribute("roleID", "AD");
+            request.getRequestDispatcher(url).forward(request, response);
         }
     }
 
