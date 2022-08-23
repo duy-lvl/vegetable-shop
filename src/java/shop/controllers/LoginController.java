@@ -15,6 +15,7 @@ import javax.servlet.http.HttpSession;
 import shop.product.ProductDAO;
 import shop.user.UserDAO;
 import shop.user.UserDTO;
+import shop.utils.VerifyRecaptcha;
 
 /**
  *
@@ -45,27 +46,30 @@ public class LoginController extends HttpServlet {
         try {
             String userID = request.getParameter("userID");
             String password = request.getParameter("password");
+            String gRecaptchaResponse = request.getParameter("g-recaptcha-response");
+            boolean verify = VerifyRecaptcha.verify(gRecaptchaResponse);
             UserDAO userDAO = new UserDAO();
             UserDTO loginUser = userDAO.checkLogin(userID, password);
+            if (verify) {
+                if (loginUser != null) {
+                    HttpSession session = request.getSession();
+                    session.setAttribute("LOGIN_USER", loginUser);
+                    String roleID = loginUser.getRoleID();
 
-            if (loginUser != null) {
-                HttpSession session = request.getSession();
-                session.setAttribute("LOGIN_USER", loginUser);
-                String roleID = loginUser.getRoleID();
-                
-                ProductDAO productDAO = new ProductDAO();
-                if (AD.equals(roleID)) {
-                    url = ADMIN_PAGE;                    
-                    request.setAttribute("PRODUCT_LIST", productDAO.getProductList("", "AD"));                    
-                } else if (US.equals(roleID)) {
-                    url = USER_PAGE;
-                    request.setAttribute("PRODUCT_LIST", productDAO.getProductList("", "US")); 
+                    ProductDAO productDAO = new ProductDAO();
+                    if (AD.equals(roleID)) {
+                        url = ADMIN_PAGE;
+                        request.setAttribute("PRODUCT_LIST", productDAO.getProductList("", "AD"));
+                    } else if (US.equals(roleID)) {
+                        url = USER_PAGE;
+                        request.setAttribute("PRODUCT_LIST", productDAO.getProductList("", "US"));
+                    } else {
+                        request.setAttribute("ERROR", "Your role is not supported!");
+                    }
                 } else {
-                    request.setAttribute("ERROR", "Your role is not supported!");
-                }
-            } else {
-                if (userID != null && password != null) {
-                    request.setAttribute("ERROR", "Incorrect userID or password!");
+                    if (userID != null && password != null) {
+                        request.setAttribute("ERROR", "Incorrect userID or password!");
+                    }
                 }
             }
         } catch (Exception e) {
